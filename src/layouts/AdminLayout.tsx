@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import AdminNavbar from "@/components/admin/AdminNavbar";
 import AdminSidebar, { adminLinks } from "@/components/admin/AdminSidebar";
 import { useProvinceStore } from "@/store/provinceStore";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminLayout() {
   return (
@@ -21,6 +22,7 @@ export default function AdminLayout() {
 }
 
 function MobileAdminNav() {
+  const { t } = useI18n();
   const provinces = useProvinceStore((s) => s.provinces);
   const pid = provinces[0]?.id || "";
   const disasterCode = provinces[0]?.defaultDisasterCode || "flood";
@@ -39,7 +41,7 @@ function MobileAdminNav() {
               }`}
             >
               {link.icon}
-              <span className="truncate">{link.label}</span>
+              <span className="truncate">{t(link.labelKey)}</span>
             </a>
           );
         })}

@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import type { Shelter } from "@/types";
 import { Loader2, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/modal";
+import { useI18n } from "@/lib/i18n";
 
 const emptyShelter: Shelter = {
   id: "",
@@ -29,6 +30,7 @@ export default function AdminSheltersPage() {
   const token = useAuthStore((s) => s.token);
   const { getShelters, setShelters } = useDisasterStore();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [shelters, setSheltersState] = useState<Shelter[]>([]);
   const [editing, setEditing] = useState<Shelter>(emptyShelter);
   const [loading, setLoading] = useState(false);
@@ -37,8 +39,8 @@ export default function AdminSheltersPage() {
   useEffect(() => {
     getShelters(provinceId)
       .then(setSheltersState)
-      .catch(() => toast({ title: "Không tải được nơi trú ẩn", variant: "destructive" }));
-  }, [getShelters, provinceId, toast]);
+      .catch(() => toast({ title: t("toast.shelterLoadError"), variant: "destructive" }));
+  }, [getShelters, provinceId, t, toast]);
 
   const resetForm = () => setEditing(emptyShelter);
 
@@ -46,23 +48,23 @@ export default function AdminSheltersPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!editing.name.trim()) throw new Error("Tên bắt buộc");
+      if (!editing.name.trim()) throw new Error(t("admin.shelters.form.name"));
       if (editing.id) {
         const updated = await Api.updateShelter(provinceId, editing.id, editing, token);
         const next = shelters.map((s) => (s.id === updated.id ? updated : s));
         setSheltersState(next);
         setShelters(provinceId, next);
-        toast({ title: "Đã cập nhật nơi trú ẩn" });
+        toast({ title: t("toast.shelterUpdated") });
       } else {
         const created = await Api.createShelter(provinceId, editing, token);
         const next = [...shelters, created];
         setSheltersState(next);
         setShelters(provinceId, next);
-        toast({ title: "Đã thêm nơi trú ẩn" });
+        toast({ title: t("toast.shelterCreated") });
       }
       resetForm();
     } catch (err) {
-      toast({ title: "Lỗi lưu nơi trú ẩn", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -76,9 +78,9 @@ export default function AdminSheltersPage() {
       const next = shelters.filter((s) => s.id !== id);
       setSheltersState(next);
       setShelters(provinceId, next);
-      toast({ title: "Đã xóa" });
+      toast({ title: t("toast.deleted") });
     } catch (err) {
-      toast({ title: "Lỗi xóa", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -87,27 +89,27 @@ export default function AdminSheltersPage() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-800 p-6 text-white shadow-lg shadow-slate-900/10">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-100">Nơi trú ẩn</p>
-        <h1 className="text-2xl font-bold leading-tight">Quản lý địa điểm an toàn cho người dân</h1>
-        <p className="text-sm text-emerald-50">Thêm/sửa tọa độ, số điện thoại và ghi chú vận hành.</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-100">{t("admin.shelters.badge")}</p>
+        <h1 className="text-2xl font-bold leading-tight">{t("admin.shelters.title")}</h1>
+        <p className="text-sm text-emerald-50">{t("admin.shelters.subtitle")}</p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
           <CardHeader>
-            <CardTitle>{editing.id ? "Sửa nơi trú ẩn" : "Thêm nơi trú ẩn"}</CardTitle>
+            <CardTitle>{editing.id ? t("admin.shelters.form.edit") : t("admin.shelters.form.add")}</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="space-y-3" onSubmit={onSubmit}>
-              <Input label="Tên địa điểm" placeholder="Trường THCS..." value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+              <Input label={t("admin.shelters.form.name")} placeholder={t("admin.shelters.form.namePlaceholder")} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
               <Input
-                label="Địa chỉ"
-                placeholder="Số nhà, phường, quận..."
+                label={t("admin.shelters.form.address")}
+                placeholder={t("admin.shelters.form.addressPlaceholder")}
                 value={editing.address}
                 onChange={(e) => setEditing({ ...editing, address: e.target.value })}
               />
               <div className="grid grid-cols-2 gap-3">
                 <Input
-                  label="Vĩ độ (lat)"
+                  label={t("admin.shelters.form.lat")}
                   type="number"
                   step="0.0001"
                   placeholder="16.047"
@@ -115,7 +117,7 @@ export default function AdminSheltersPage() {
                   onChange={(e) => setEditing({ ...editing, lat: Number(e.target.value) })}
                 />
                 <Input
-                  label="Kinh độ (lng)"
+                  label={t("admin.shelters.form.lng")}
                   type="number"
                   step="0.0001"
                   placeholder="108.206"
@@ -124,30 +126,30 @@ export default function AdminSheltersPage() {
                 />
               </div>
               <Input
-                label="Điện thoại liên hệ"
+                label={t("admin.shelters.form.phone")}
                 placeholder="0123 456 789"
                 value={editing.phone || ""}
                 onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
               />
               <Input
-                label="Giờ hoạt động"
+                label={t("admin.shelters.form.hours")}
                 placeholder="24/7 hoặc khung giờ"
                 value={editing.hours || ""}
                 onChange={(e) => setEditing({ ...editing, hours: e.target.value })}
               />
               <Textarea
-                placeholder="Ghi chú thêm (sức chứa, lưu ý...)"
+                placeholder={t("admin.shelters.form.note")}
                 value={editing.note || ""}
                 onChange={(e) => setEditing({ ...editing, note: e.target.value })}
               />
               <div className="flex gap-2">
                 <Button type="submit" disabled={loading} className="w-full">
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {editing.id ? "Lưu thay đổi" : "Thêm địa điểm"}
+                  {editing.id ? t("admin.shelters.form.saveEdit") : t("admin.shelters.form.saveNew")}
                 </Button>
                 {editing.id && (
                   <Button type="button" variant="ghost" onClick={resetForm}>
-                    Hủy
+                    {t("admin.shelters.form.cancel")}
                   </Button>
                 )}
               </div>
@@ -157,7 +159,7 @@ export default function AdminSheltersPage() {
 
         <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
           <CardHeader>
-            <CardTitle>Danh sách nơi trú ẩn</CardTitle>
+            <CardTitle>{t("admin.shelters.listTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {shelters.map((shelter) => (
@@ -181,16 +183,16 @@ export default function AdminSheltersPage() {
                 </div>
               </div>
             ))}
-            {shelters.length === 0 && <p className="text-sm text-slate-600">Chưa có nơi trú ẩn.</p>}
+            {shelters.length === 0 && <p className="text-sm text-slate-600">{t("admin.shelters.empty")}</p>}
           </CardContent>
         </Card>
       </div>
 
       <ConfirmDialog
         open={Boolean(confirmDelete)}
-        title="Xóa nơi trú ẩn?"
-        description={`Bạn chắc chắn muốn xóa "${confirmDelete?.name}"? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        title={t("admin.shelters.deleteTitle")}
+        description={t("admin.shelters.deleteDesc", { name: confirmDelete?.name || "" })}
+        confirmLabel={t("admin.shelters.deleteConfirm")}
         onConfirm={() => confirmDelete && onDelete(confirmDelete.id)}
         onClose={() => setConfirmDelete(null)}
       />

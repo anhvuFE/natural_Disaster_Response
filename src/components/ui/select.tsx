@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export type SelectOption = { label: string; value: string; hint?: string };
 
@@ -14,9 +15,11 @@ interface SelectProps {
   className?: string;
 }
 
-export function Select({ label, placeholder = "Chọn", value, options, onChange, disabled, className }: SelectProps) {
+export function Select({ label, placeholder, value, options, onChange, disabled, className }: SelectProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { t } = useI18n();
+  const resolvedPlaceholder = placeholder || t("select.placeholder");
 
   const selected = useMemo(() => options.find((o) => o.value === value), [options, value]);
 
@@ -43,7 +46,9 @@ export function Select({ label, placeholder = "Chọn", value, options, onChange
           open ? "ring-2 ring-brand-500/50" : ""
         )}
       >
-        <span className={cn("truncate", selected ? "text-slate-900" : "text-slate-500")}>{selected?.label || placeholder}</span>
+        <span className={cn("truncate", selected ? "text-slate-900" : "text-slate-500")}>
+          {selected?.label || resolvedPlaceholder}
+        </span>
         <ChevronsUpDown className="h-4 w-4 text-slate-500" />
       </button>
       {open && (
@@ -72,7 +77,7 @@ export function Select({ label, placeholder = "Chọn", value, options, onChange
                   </li>
                 );
               })}
-              {options.length === 0 && <li className="px-3 py-2 text-xs text-slate-500">Không có lựa chọn</li>}
+              {options.length === 0 && <li className="px-3 py-2 text-xs text-slate-500">{t("select.empty")}</li>}
             </ul>
           </div>
         </div>

@@ -4,19 +4,25 @@ import HomeHero from "@/components/home/HomeHero";
 import ProvinceSelectorCard from "@/components/home/ProvinceSelectorCard";
 import { useProvinceStore } from "@/store/provinceStore";
 import { useToast } from "@/components/ui/use-toast";
+import { useI18n } from "@/lib/i18n";
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { provinces, fetchProvinces, setCurrentProvince, lastSlug } = useProvinceStore();
+  const { t } = useI18n();
   const [selectedSlug, setSelectedSlug] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchProvinces().catch(() => {
-      toast({ title: "Lỗi", description: "Không tải được danh sách tỉnh", variant: "destructive" });
+      toast({
+        title: t("toast.loadProvincesError.title"),
+        description: t("toast.loadProvincesError.desc"),
+        variant: "destructive",
+      });
     });
-  }, [fetchProvinces, toast]);
+  }, [fetchProvinces, toast, t]);
 
   useEffect(() => {
     // Prefill bằng lựa chọn gần nhất nếu có.
@@ -25,12 +31,12 @@ export default function HomePage() {
 
   const handleSubmit = () => {
     if (!selectedSlug) {
-      toast({ title: "Vui lòng chọn tỉnh/thành", variant: "destructive" });
+      toast({ title: t("toast.selectProvince"), variant: "destructive" });
       return;
     }
     const province = provinces.find((p) => p.slug === selectedSlug);
     if (!province) {
-      toast({ title: "Tỉnh không hợp lệ", variant: "destructive" });
+      toast({ title: t("toast.invalidProvince"), variant: "destructive" });
       return;
     }
     setLoading(true);

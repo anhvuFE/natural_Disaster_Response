@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useProvinceStore } from "@/store/provinceStore";
 import { CornerDownRight } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export default function ProvinceQuickLink() {
   const { fetchProvinces, provinces, lastSlug } = useProvinceStore();
+  const { t } = useI18n();
 
   useEffect(() => {
     fetchProvinces().catch(() => undefined);
@@ -19,7 +21,7 @@ export default function ProvinceQuickLink() {
     <Button asChild variant="outline" size="sm">
       <Link to={`/province/${province.slug}`} className="flex items-center gap-2">
         <CornerDownRight className="h-4 w-4 text-brand-600" />
-        <span>Tiếp tục {province.name}</span>
+        <span>{t("nav.continue", { province: province.name })}</span>
       </Link>
     </Button>
   );

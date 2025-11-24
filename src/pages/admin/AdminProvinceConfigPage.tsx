@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/ui/use-toast";
 import type { Province } from "@/types";
 import { Loader2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminProvinceConfigPage() {
   const { id = "" } = useParams<{ id: string }>();
@@ -19,13 +20,14 @@ export default function AdminProvinceConfigPage() {
   const token = useAuthStore((s) => s.token);
   const { provinces, fetchProvinces } = useProvinceStore();
   const { disasterTypes, fetchDisasterTypes } = useDisasterStore();
+  const { t } = useI18n();
   const [province, setProvince] = useState<Province | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchProvinces().catch(() => toast({ title: "Không tải được tỉnh", variant: "destructive" }));
+    fetchProvinces().catch(() => toast({ title: t("toast.provinceLoadError"), variant: "destructive" }));
     fetchDisasterTypes().catch(() => undefined);
-  }, [fetchProvinces, fetchDisasterTypes, toast]);
+  }, [fetchProvinces, fetchDisasterTypes, t, toast]);
 
   useEffect(() => {
     const found = provinces.find((p) => p.id === id);
@@ -34,9 +36,9 @@ export default function AdminProvinceConfigPage() {
     } else if (id) {
       Api.getProvinceById(id)
         .then((data) => setProvince(data))
-        .catch(() => toast({ title: "Không tìm thấy tỉnh", variant: "destructive" }));
+        .catch(() => toast({ title: t("toast.provinceNotFound"), variant: "destructive" }));
     }
-  }, [id, provinces, toast]);
+  }, [id, provinces, t, toast]);
 
   const onSave = async () => {
     if (!province) return;
@@ -48,10 +50,10 @@ export default function AdminProvinceConfigPage() {
         region: province.region,
         defaultDisasterCode: province.defaultDisasterCode,
       }, token);
-      toast({ title: "Đã lưu cấu hình tỉnh" });
+      toast({ title: t("toast.provinceSaved") });
       setProvince(updated);
     } catch (err) {
-      toast({ title: "Lỗi lưu", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -65,7 +67,7 @@ export default function AdminProvinceConfigPage() {
   if (!province) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm text-slate-600">Đang tải cấu hình tỉnh...</p>
+        <p className="text-sm text-slate-600">{t("admin.provinceConfig.loading")}</p>
       </div>
     );
   }
@@ -74,47 +76,48 @@ export default function AdminProvinceConfigPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Cấu hình tỉnh</h1>
-          <p className="text-sm text-slate-600">Quản trị slug, vùng, thiên tai mặc định.</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t("admin.provinceConfig.title")}</h1>
+          <p className="text-sm text-slate-600">{t("admin.provinceConfig.subtitle")}</p>
         </div>
         <Button variant="ghost" onClick={() => navigate(-1)}>
-          Quay lại
+          {t("admin.provinceConfig.back")}
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Thông tin cơ bản</CardTitle>
+          <CardTitle>{t("admin.provinceConfig.basicInfo")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Input
-            label="Tên"
-            placeholder="Tên tỉnh"
+            label={t("admin.provinceConfig.name")}
+            placeholder={t("admin.provinceConfig.namePlaceholder")}
             value={province.name}
             onChange={(e) => setProvince({ ...province, name: e.target.value })}
           />
           <Input
-            label="Slug"
-            placeholder="slug-tinh"
+            label={t("admin.provinceConfig.slug")}
+            placeholder={t("admin.provinceConfig.slugPlaceholder")}
             value={province.slug}
             onChange={(e) => setProvince({ ...province, slug: e.target.value })}
           />
           <Input
-            label="Vùng"
-            placeholder="Bắc Trung Bộ"
+            label={t("admin.provinceConfig.region")}
+            placeholder={t("admin.provinceConfig.regionPlaceholder")}
             value={province.region || ""}
             onChange={(e) => setProvince({ ...province, region: e.target.value })}
           />
           <Select
-            label="Thiên tai mặc định"
-            placeholder="Chưa chọn"
+            label={t("admin.provinceConfig.defaultDisaster")}
+            placeholder={t("admin.provinceConfig.defaultPlaceholder")}
             value={province.defaultDisasterCode || ""}
             onChange={(code) => setProvince({ ...province, defaultDisasterCode: code })}
             options={disasterTypes.map((d) => ({ value: d.code, label: d.name }))}
           />
-          {defaultTypeName && <p className="text-xs text-slate-500">Đang chọn: {defaultTypeName}</p>}
+          {defaultTypeName && <p className="text-xs text-slate-500">{t("admin.provinceConfig.selected", { name: defaultTypeName })}</p>}
           <Button onClick={onSave} disabled={saving}>
-            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Lưu cấu hình
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t("admin.provinceConfig.save")}
           </Button>
         </CardContent>
       </Card>

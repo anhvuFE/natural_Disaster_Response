@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Api } from "@/lib/api";
 import { Alert } from "@/types";
@@ -7,30 +7,35 @@ import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-
-const levelCopy: Record<Alert["level"], { label: string; variant: "info" | "warning" | "critical" }> = {
-  info: { label: "Thông tin", variant: "info" },
-  warning: { label: "Cảnh báo", variant: "warning" },
-  critical: { label: "Khẩn cấp", variant: "critical" },
-};
+import { useI18n } from "@/lib/i18n";
 
 export default function AlertDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [alert, setAlert] = useState<Alert | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useI18n();
+  const levelCopy = useMemo(
+    () =>
+      ({
+        info: { label: t("alert.level.info"), variant: "info" as const },
+        warning: { label: t("alert.level.warning"), variant: "warning" as const },
+        critical: { label: t("alert.level.critical"), variant: "critical" as const },
+      }) satisfies Record<Alert["level"], { label: string; variant: "info" | "warning" | "critical" }>,
+    [t]
+  );
 
   useEffect(() => {
     if (!id) return;
     Api.getAlertById(id)
       .then(setAlert)
-      .catch(() => toast({ title: "Không tải được cảnh báo", variant: "destructive" }));
-  }, [id, toast]);
+      .catch(() => toast({ title: t("toast.alertLoadFailed"), variant: "destructive" }));
+  }, [id, t, toast]);
 
   if (!alert) {
     return (
       <div className="mx-auto max-w-3xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm text-slate-600">Đang tải cảnh báo...</p>
+        <p className="text-sm text-slate-600">{t("alert.loading")}</p>
       </div>
     );
   }
@@ -41,7 +46,7 @@ export default function AlertDetailPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <Button variant="ghost" onClick={() => navigate(-1)} className="flex items-center gap-2">
-        <ArrowLeft className="h-4 w-4" /> Quay lại
+        <ArrowLeft className="h-4 w-4" /> {t("alert.back")}
       </Button>
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
@@ -52,11 +57,11 @@ export default function AlertDetailPage() {
         <p className="mt-3 text-base text-slate-700">{alert.content}</p>
         <div className="mt-4 flex items-center gap-2 text-sm text-slate-600">
           <MapPin className="h-4 w-4 text-brand-600" />
-          Phạm vi: {alert.scope || "Toàn tỉnh"}
+          {t("alert.scope", { scope: alert.scope || t("alert.scopeProvince") })}
         </div>
         <div className="mt-6">
           <Button asChild>
-            <Link to={`/province/${provincePath}`}>Xem hướng dẫn cho tỉnh</Link>
+            <Link to={`/province/${provincePath}`}>{t("alert.viewGuide")}</Link>
           </Button>
         </div>
       </div>

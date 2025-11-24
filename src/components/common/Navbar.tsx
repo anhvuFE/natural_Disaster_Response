@@ -2,14 +2,16 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, Home } from "lucide-react";
 import ProvinceQuickLink from "@/components/common/ProvinceQuickLink";
-
-const navLinks = [
-  { to: "/", label: "Trang chủ" },
-  { to: "/admin", label: "Admin" },
-];
+import { useI18n } from "@/lib/i18n";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 export default function Navbar() {
+  const { t } = useI18n();
   const { pathname } = useLocation();
+  const navLinks = [
+    { to: "/", label: t("nav.home") },
+    { to: "/admin", label: t("nav.admin") },
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
@@ -20,11 +22,12 @@ export default function Navbar() {
           </span>
           <div className="leading-tight">
             <div>SafeProvinces</div>
-            <p className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500">Cảnh báo & hướng dẫn</p>
+            <p className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500">{t("nav.subtitle")}</p>
           </div>
         </Link>
         <div className="flex items-center gap-2 sm:gap-3">
           <ProvinceQuickLink />
+          <LanguageSwitcher />
           <nav className="hidden flex-wrap items-center gap-1 text-sm font-semibold text-slate-600 sm:flex">
             {navLinks.map((item) => {
               const active = pathname === item.to || pathname.startsWith(item.to + "/");
@@ -44,7 +47,7 @@ export default function Navbar() {
           <Button asChild variant="outline" size="sm" className="sm:hidden">
             <Link to="/">
               <Home className="mr-2 h-4 w-4" />
-              Home
+              {t("nav.homeMobile")}
             </Link>
           </Button>
         </div>

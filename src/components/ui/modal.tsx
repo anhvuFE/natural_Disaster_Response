@@ -2,8 +2,10 @@ import { ReactNode, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 export function Modal({ open, onClose, children, className }: { open: boolean; onClose: () => void; children: ReactNode; className?: string }) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -21,7 +23,7 @@ export function Modal({ open, onClose, children, className }: { open: boolean; o
         <button
           onClick={onClose}
           className="absolute right-3 top-3 rounded-full p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-          aria-label="Close"
+          aria-label={t("modal.close")}
         >
           <X className="h-4 w-4" />
         </button>
@@ -36,8 +38,8 @@ export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = "Đồng ý",
-  cancelLabel = "Hủy",
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onClose,
 }: {
@@ -49,6 +51,9 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
+  const confirmText = confirmLabel || t("modal.confirm");
+  const cancelText = cancelLabel || t("modal.cancel");
   return (
     <Modal open={open} onClose={onClose}>
       <div className="space-y-3">
@@ -59,7 +64,7 @@ export function ConfirmDialog({
             onClick={onClose}
             className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
-            {cancelLabel}
+            {cancelText}
           </button>
           <button
             onClick={() => {
@@ -68,7 +73,7 @@ export function ConfirmDialog({
             }}
             className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow hover:bg-red-700"
           >
-            {confirmLabel}
+            {confirmText}
           </button>
         </div>
       </div>

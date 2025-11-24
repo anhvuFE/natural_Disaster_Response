@@ -1,6 +1,7 @@
 import type { DisasterType } from "@/types";
 import { cn } from "@/lib/utils";
 import { Flame, Droplets, Wind } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   items: DisasterType[];
@@ -16,8 +17,10 @@ const fallbackIcon = (code?: string) => {
 };
 
 export default function DisasterTabs({ items, active, onChange }: Props) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-wrap gap-2">
+      {items.length === 0 && <p className="text-sm text-slate-500">{t("tabs.noDisaster")}</p>}
       {items.map((item) => {
         const selected = active === item.code;
         return (

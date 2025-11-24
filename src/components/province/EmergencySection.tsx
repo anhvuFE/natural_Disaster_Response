@@ -1,13 +1,16 @@
 import type { EmergencyContact } from "@/types";
 import { PhoneCall } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   contacts: EmergencyContact[];
 }
 
 export default function EmergencySection({ contacts }: Props) {
+  const { t } = useI18n();
+  const otherLabel = t("emergency.other");
   const grouped = contacts.reduce<Record<string, EmergencyContact[]>>((acc, contact) => {
-    const key = contact.category || "Khác";
+    const key = contact.category || otherLabel;
     acc[key] = acc[key] ? [...acc[key], contact] : [contact];
     return acc;
   }, {});
@@ -17,9 +20,9 @@ export default function EmergencySection({ contacts }: Props) {
   return (
     <section className="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-md shadow-slate-900/5 backdrop-blur">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-900">Số khẩn cấp</h3>
+        <h3 className="text-lg font-semibold text-slate-900">{t("emergency.title")}</h3>
         <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700">
-          Gọi ngay
+          {t("emergency.badge")}
         </span>
       </div>
       <div className="space-y-3">
@@ -46,7 +49,7 @@ export default function EmergencySection({ contacts }: Props) {
             </div>
           </div>
         ))}
-        {contacts.length === 0 && <p className="text-sm text-slate-500">Chưa có số khẩn cấp.</p>}
+        {contacts.length === 0 && <p className="text-sm text-slate-500">{t("emergency.empty")}</p>}
       </div>
     </section>
   );

@@ -5,10 +5,12 @@ import { useAuthStore } from "@/store/authStore";
 import { useProvinceStore } from "@/store/provinceStore";
 import { Button } from "@/components/ui/button";
 import { ListChecks, MapPin, PhoneCall, Megaphone, Globe, BellRing, Shield, ShieldCheck } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminDashboardPage() {
   const { user } = useAuthStore();
   const { provinces, fetchProvinces } = useProvinceStore();
+  const { t } = useI18n();
 
   useEffect(() => {
     fetchProvinces().catch(() => undefined);
@@ -27,14 +29,14 @@ export default function AdminDashboardPage() {
       <div className="space-y-4 rounded-3xl border border-white/60 bg-gradient-to-r from-slate-900 via-slate-800 to-sky-900 p-6 text-white shadow-lg shadow-slate-900/10">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-200">Bảng điều khiển</p>
-            <h1 className="text-3xl font-bold leading-tight">Quản trị nội dung & cảnh báo</h1>
-            <p className="text-sm text-sky-100">Truy cập nhanh các module bạn được phân quyền.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-200">{t("admin.dashboard.badge")}</p>
+            <h1 className="text-3xl font-bold leading-tight">{t("admin.dashboard.title")}</h1>
+            <p className="text-sm text-sky-100">{t("admin.dashboard.subtitle")}</p>
           </div>
           <div className="flex gap-3">
-            <DashboardStat label="Tỉnh quản lý" value={String(stats.provinces)} />
-            <DashboardStat label="Nơi trú ẩn" value={stats.shelters} />
-            <DashboardStat label="Cảnh báo" value={stats.alerts} />
+            <DashboardStat label={t("admin.dashboard.stat.provinces")} value={String(stats.provinces)} />
+            <DashboardStat label={t("admin.dashboard.stat.shelters")} value={stats.shelters} />
+            <DashboardStat label={t("admin.dashboard.stat.alerts")} value={stats.alerts} />
           </div>
         </div>
       </div>
@@ -47,11 +49,11 @@ export default function AdminDashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-slate-700">
                 <Globe className="h-5 w-5 text-brand-600" />
-                Quản trị tỉnh/thành
+                {t("admin.nav.provinceConfig")}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-3 text-sm text-slate-600">Chỉnh sửa slug, vùng, thiên tai mặc định từng tỉnh.</p>
+              <p className="mb-3 text-sm text-slate-600">{t("admin.dashboard.subtitle")}</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {provinces.map((p) => (
                   <Button key={p.id} asChild variant="outline" className="justify-start">
@@ -78,28 +80,28 @@ export default function AdminDashboardPage() {
                 <AdminShortcut
                   to={`/admin/content/${province.id}/${province.defaultDisasterCode || "flood"}`}
                   icon={<ListChecks className="h-4 w-4" />}
-                  label="Nội dung hướng dẫn"
+                  label={t("admin.nav.content")}
                 />
                 <AdminShortcut
                   to={`/admin/shelters/${province.id}`}
                   icon={<MapPin className="h-4 w-4" />}
-                  label="Nơi trú ẩn"
+                  label={t("admin.nav.shelters")}
                 />
                 <AdminShortcut
                   to={`/admin/contacts/${province.id}`}
                   icon={<PhoneCall className="h-4 w-4" />}
-                  label="Số khẩn cấp"
+                  label={t("admin.nav.contacts")}
                 />
                 <AdminShortcut
                   to={`/admin/alerts/${province.id}`}
                   icon={<Megaphone className="h-4 w-4" />}
-                  label="Cảnh báo"
+                  label={t("admin.nav.alerts")}
                 />
               </div>
             </CardContent>
           </Card>
         ))}
-        {managedProvinces.length === 0 && <p className="text-sm text-slate-600">Chưa có tỉnh được phân quyền.</p>}
+        {managedProvinces.length === 0 && <p className="text-sm text-slate-600">{t("admin.dashboard.noProvince")}</p>}
       </div>
     </div>
   );
@@ -117,12 +119,13 @@ function AdminShortcut({ to, icon, label }: { to: string; icon: React.ReactNode;
 }
 
 function QuickActions({ provinces }: { provinces: { id: string; name: string; defaultDisasterCode?: string }[] }) {
+  const { t } = useI18n();
   const targetProvince = provinces[0];
 
   if (!targetProvince) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
-        Chưa có tỉnh được phân quyền để thao tác nhanh.
+        {t("admin.dashboard.quickEmpty")}
       </div>
     );
   }
@@ -132,26 +135,26 @@ function QuickActions({ provinces }: { provinces: { id: string; name: string; de
   const actions = [
     {
       to: `/admin/alerts/${pid}`,
-      title: "Gửi cảnh báo nhanh",
-      desc: "Chọn mức độ, phạm vi và gửi tới người dân",
+      title: t("admin.dashboard.actions.alert.title"),
+      desc: t("admin.dashboard.actions.alert.desc"),
       icon: <BellRing className="h-5 w-5 text-amber-600" />,
     },
     {
       to: `/admin/content/${pid}/${defaultDisaster}`,
-      title: "Chỉnh checklist & hướng dẫn",
-      desc: "Cập nhật trước/trong/sau thiên tai",
+      title: t("admin.dashboard.actions.content.title"),
+      desc: t("admin.dashboard.actions.content.desc"),
       icon: <ListChecks className="h-5 w-5 text-emerald-600" />,
     },
     {
       to: `/admin/shelters/${pid}`,
-      title: "Quản lý nơi trú ẩn",
-      desc: "Thêm tọa độ, số điện thoại, ghi chú",
+      title: t("admin.dashboard.actions.shelter.title"),
+      desc: t("admin.dashboard.actions.shelter.desc"),
       icon: <Shield className="h-5 w-5 text-sky-600" />,
     },
     {
       to: `/admin/contacts/${pid}`,
-      title: "Cập nhật số khẩn cấp",
-      desc: "Danh bạ cứu hộ, y tế, điện lực",
+      title: t("admin.dashboard.actions.contact.title"),
+      desc: t("admin.dashboard.actions.contact.desc"),
       icon: <PhoneCall className="h-5 w-5 text-indigo-600" />,
     },
   ];

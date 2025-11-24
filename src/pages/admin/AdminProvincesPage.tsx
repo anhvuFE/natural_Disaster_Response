@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import type { Province } from "@/types";
 import { Loader2, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/modal";
+import { useI18n } from "@/lib/i18n";
 
 const emptyProvince: Province = { id: "", name: "", slug: "", region: "", defaultDisasterCode: "" };
 
@@ -16,13 +17,14 @@ export default function AdminProvincesPage() {
   const token = useAuthStore((s) => s.token);
   const { provinces, fetchProvinces, error, loading } = useProvinceStore();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [editing, setEditing] = useState<Province>(emptyProvince);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Province | null>(null);
 
   useEffect(() => {
-    fetchProvinces().catch(() => toast({ title: "Không tải được danh sách tỉnh", variant: "destructive" }));
-  }, [fetchProvinces, toast]);
+    fetchProvinces().catch(() => toast({ title: t("toast.provinceListLoadError"), variant: "destructive" }));
+  }, [fetchProvinces, t, toast]);
 
   const resetForm = () => setEditing(emptyProvince);
 
@@ -30,18 +32,18 @@ export default function AdminProvincesPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      if (!editing.name.trim() || !editing.slug.trim()) throw new Error("Tên và slug bắt buộc");
+      if (!editing.name.trim() || !editing.slug.trim()) throw new Error(t("admin.provinces.form.slug"));
       if (editing.id) {
         await Api.updateProvince(editing.id, editing, token);
-        toast({ title: "Đã cập nhật tỉnh" });
+        toast({ title: t("toast.provinceUpdated") });
       } else {
         await Api.createProvince(editing, token);
-        toast({ title: "Đã tạo tỉnh" });
+        toast({ title: t("toast.provinceCreated") });
       }
       resetForm();
       fetchProvinces();
     } catch (err) {
-      toast({ title: "Lỗi lưu", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -51,10 +53,10 @@ export default function AdminProvincesPage() {
     setSaving(true);
     try {
       await Api.deleteProvince(id, token);
-      toast({ title: "Đã xóa" });
+      toast({ title: t("toast.deleted") });
       fetchProvinces();
     } catch (err) {
-      toast({ title: "Lỗi xóa", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -63,35 +65,35 @@ export default function AdminProvincesPage() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-800 p-6 text-white shadow-lg shadow-slate-900/10">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-indigo-100">Danh sách tỉnh/thành</p>
-        <h1 className="text-2xl font-bold leading-tight">Quản lý địa bàn và mã truy cập</h1>
-        <p className="text-sm text-indigo-50">Cập nhật tên, vùng và mã truy cập (slug) để người dân tìm đúng địa phương của mình.</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-indigo-100">{t("admin.provinces.badge")}</p>
+        <h1 className="text-2xl font-bold leading-tight">{t("admin.provinces.title")}</h1>
+        <p className="text-sm text-indigo-50">{t("admin.provinces.subtitle")}</p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
           <CardHeader>
-            <CardTitle>{editing.id ? "Sửa tỉnh/thành" : "Thêm tỉnh/thành"}</CardTitle>
+            <CardTitle>{editing.id ? t("admin.provinces.form.edit") : t("admin.provinces.form.add")}</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="space-y-3" onSubmit={onSubmit}>
-              <Input label="Tên" placeholder="Hà Nội" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
-              <Input label="Slug" placeholder="ha-noi" value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} hint="Dùng chữ thường, gạch nối, không dấu" />
-              <Input label="Vùng" placeholder="Đồng bằng sông Hồng" value={editing.region || ""} onChange={(e) => setEditing({ ...editing, region: e.target.value })} />
+              <Input label={t("admin.provinces.form.name")} placeholder={t("admin.provinces.form.namePlaceholder")} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+              <Input label={t("admin.provinces.form.slug")} placeholder={t("admin.provinces.form.slugPlaceholder")} value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} hint={t("admin.provinces.form.slugHint")} />
+              <Input label={t("admin.provinces.form.region")} placeholder={t("admin.provinces.form.regionPlaceholder")} value={editing.region || ""} onChange={(e) => setEditing({ ...editing, region: e.target.value })} />
               <Input
-                label="Thiên tai mặc định"
+                label={t("admin.provinces.form.defaultDisaster")}
                 placeholder="flood"
                 value={editing.defaultDisasterCode || ""}
                 onChange={(e) => setEditing({ ...editing, defaultDisasterCode: e.target.value })}
-                hint="Code của loại thiên tai phổ biến nhất"
+                hint={t("admin.provinces.form.defaultDisasterHint")}
               />
               <div className="flex gap-2">
                 <Button type="submit" disabled={saving} className="w-full">
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {editing.id ? "Lưu thay đổi" : "Thêm tỉnh"}
+                  {editing.id ? t("admin.provinces.form.saveEdit") : t("admin.provinces.form.saveNew")}
                 </Button>
                 {editing.id && (
                   <Button type="button" variant="ghost" onClick={resetForm}>
-                    Hủy
+                    {t("admin.provinces.form.cancel")}
                   </Button>
                 )}
               </div>
@@ -101,19 +103,20 @@ export default function AdminProvincesPage() {
 
         <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
           <CardHeader>
-            <CardTitle>Danh sách tỉnh/thành</CardTitle>
+            <CardTitle>{t("admin.provinces.badge")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
               <span>
                 {loading
-                  ? "Đang tải danh sách tỉnh từ AddressKit..."
+                  ? t("admin.provinces.dataSource.loading")
                   : error
-                  ? `Nguồn dữ liệu: ${error}`
-                  : "Nguồn dữ liệu: AddressKit"}
+                  ? t("admin.provinces.dataSource.error", { message: error })
+                  : t("admin.provinces.dataSource.ok")}
               </span>
               <Button size="sm" variant="outline" onClick={() => fetchProvinces()} disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}Tải lại
+                {loading && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+                {t("admin.provinces.reload")}
               </Button>
             </div>
             {provinces.map((province) => (
@@ -139,16 +142,16 @@ export default function AdminProvincesPage() {
                 </div>
               </div>
             ))}
-            {provinces.length === 0 && <p className="text-sm text-slate-600">Chưa có tỉnh.</p>}
+            {provinces.length === 0 && <p className="text-sm text-slate-600">{t("admin.provinces.empty")}</p>}
           </CardContent>
         </Card>
       </div>
 
       <ConfirmDialog
         open={Boolean(confirmDelete)}
-        title="Xóa tỉnh/thành?"
-        description={`Bạn chắc chắn muốn xóa "${confirmDelete?.name}"? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        title={t("admin.provinces.deleteTitle")}
+        description={t("admin.provinces.deleteDesc", { name: confirmDelete?.name || "" })}
+        confirmLabel={t("admin.provinces.deleteConfirm")}
         onConfirm={() => confirmDelete && onDelete(confirmDelete.id)}
         onClose={() => setConfirmDelete(null)}
       />

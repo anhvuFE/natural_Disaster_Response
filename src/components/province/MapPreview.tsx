@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import type { Shelter } from "@/types";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   shelter: Shelter;
 }
 
 export default function MapPreview({ shelter }: Props) {
+  const { t } = useI18n();
   const bbox = useMemo(() => {
     const delta = 0.01; // ~1km radius
     const south = shelter.lat - delta;
@@ -32,21 +34,21 @@ export default function MapPreview({ shelter }: Props) {
   return (
     <div className="mt-2 rounded-lg border border-slate-200 bg-white">
       <iframe
-        title={`Bản đồ - ${shelter.name}`}
+        title={t("map.title", { name: shelter.name })}
         src={mapSrc}
         className="h-48 w-full overflow-hidden rounded-b-lg"
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
       />
       <div className="flex items-center justify-between px-3 py-2 text-xs text-slate-600">
-        <span>Hiển thị với OpenStreetMap (không cần API key)</span>
+        <span>{t("map.caption")}</span>
         <a
           href={externalLink}
           target="_blank"
           rel="noreferrer"
           className="font-semibold text-brand-600 hover:underline"
         >
-          Mở bản đồ
+          {t("map.open")}
         </a>
       </div>
     </div>

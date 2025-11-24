@@ -1,18 +1,20 @@
 import type { Shelter } from "@/types";
 import { Phone, MapPinned, Map } from "lucide-react";
 import MapPreview from "@/components/province/MapPreview";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   shelters: Shelter[];
 }
 
 export default function ShelterSection({ shelters }: Props) {
+  const { t } = useI18n();
   return (
     <section className="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-md shadow-slate-900/5 backdrop-blur">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-900">Nơi trú ẩn</h3>
+        <h3 className="text-lg font-semibold text-slate-900">{t("shelter.title")}</h3>
         <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
-          {shelters.length} địa điểm
+          {t("shelter.count", { count: shelters.length })}
         </span>
       </div>
       <div className="space-y-3">
@@ -25,7 +27,7 @@ export default function ShelterSection({ shelters }: Props) {
                   {shelter.name}
                 </div>
                 <p className="text-sm text-slate-600">{shelter.address}</p>
-                {shelter.hours && <p className="text-xs text-slate-500">Giờ hoạt động: {shelter.hours}</p>}
+                {shelter.hours && <p className="text-xs text-slate-500">{t("shelter.hours", { hours: shelter.hours })}</p>}
                 {shelter.note && <p className="text-xs text-slate-500">{shelter.note}</p>}
                 <div className="mt-2 inline-flex gap-2 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-500">
                   <span>Lat: {shelter.lat.toFixed(3)}</span>
@@ -39,7 +41,7 @@ export default function ShelterSection({ shelters }: Props) {
                     className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 font-semibold text-brand-700 transition hover:bg-brand-100"
                     href={`tel:${shelter.phone}`}
                   >
-                    <Phone className="h-4 w-4" /> Gọi ngay
+                    <Phone className="h-4 w-4" /> {t("shelter.call")}
                   </a>
                 )}
                 <a
@@ -48,13 +50,13 @@ export default function ShelterSection({ shelters }: Props) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <Map className="h-4 w-4" /> Mở trên OpenStreetMap
+                  <Map className="h-4 w-4" /> {t("shelter.openMap")}
                 </a>
               </div>
             </div>
           </div>
         ))}
-        {shelters.length === 0 && <p className="text-sm text-slate-500">Chưa có nơi trú ẩn.</p>}
+        {shelters.length === 0 && <p className="text-sm text-slate-500">{t("shelter.empty")}</p>}
       </div>
     </section>
   );

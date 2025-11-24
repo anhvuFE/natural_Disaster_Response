@@ -1,5 +1,6 @@
 import type { TipsSection as TipsSectionType } from "@/types";
 import { Lightbulb } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   title: string;
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function TipsSection({ title, sections }: Props) {
+  const { t } = useI18n();
   return (
     <section className="rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-md shadow-slate-900/5 backdrop-blur">
       <div className="mb-4 flex items-center gap-2">
@@ -29,7 +31,7 @@ export default function TipsSection({ title, sections }: Props) {
             </ul>
           </div>
         ))}
-        {sections.length === 0 && <p className="text-sm text-slate-500">Chưa có nội dung.</p>}
+        {sections.length === 0 && <p className="text-sm text-slate-500">{t("tips.empty")}</p>}
       </div>
     </section>
   );

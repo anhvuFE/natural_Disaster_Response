@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Loader2, Pencil, Plus, Trash2, ShieldAlert, UserCheck, Users as UsersIcon } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/modal";
+import { useI18n } from "@/lib/i18n";
 
 // NOTE: This is a placeholder UI. Wire it to real API endpoints when available.
 const seedUsers: AdminAccount[] = [
@@ -17,6 +18,7 @@ const seedUsers: AdminAccount[] = [
 
 export default function AdminUsersPage() {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [users, setUsers] = useState<AdminAccount[]>(seedUsers);
   const [editing, setEditing] = useState<AdminAccount | null>(null);
   const [loading, setLoading] = useState(false);
@@ -53,13 +55,13 @@ export default function AdminUsersPage() {
       });
       setEditing(null);
       setLoading(false);
-      toast({ title: "Đã lưu người dùng" });
+      toast({ title: t("toast.userSaved") });
     }, 300);
   };
 
   const onDelete = (id: string) => {
     setUsers((prev) => prev.filter((u) => u.id !== id));
-    toast({ title: "Đã xóa" });
+    toast({ title: t("toast.userDeleted") });
   };
 
   const initials = (name: string) =>
@@ -72,13 +74,13 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-r from-slate-900 via-slate-800 to-purple-800 p-6 text-white shadow-lg shadow-slate-900/10">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-purple-100">Quản lý tài khoản</p>
-        <h1 className="text-2xl font-bold leading-tight">Cấp quyền cán bộ toàn quốc / địa phương</h1>
-        <p className="text-sm text-purple-50">Thêm, sửa, gán tỉnh phụ trách cho từng cán bộ. Khi kết nối hệ thống trung tâm, dữ liệu sẽ tự đồng bộ.</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-purple-100">{t("admin.users.badge")}</p>
+        <h1 className="text-2xl font-bold leading-tight">{t("admin.users.title")}</h1>
+        <p className="text-sm text-purple-50">{t("admin.users.subtitle")}</p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <StatPill label="Tổng" value={counts.total} icon={<UsersIcon className="h-4 w-4" />} />
-          <StatPill label="Quản trị toàn hệ thống" value={counts.global} icon={<ShieldAlert className="h-4 w-4" />} />
-          <StatPill label="Cán bộ địa phương" value={counts.local} icon={<UserCheck className="h-4 w-4" />} />
+          <StatPill label={t("admin.users.stats.total")} value={counts.total} icon={<UsersIcon className="h-4 w-4" />} />
+          <StatPill label={t("admin.users.stats.global")} value={counts.global} icon={<ShieldAlert className="h-4 w-4" />} />
+          <StatPill label={t("admin.users.stats.local")} value={counts.local} icon={<UserCheck className="h-4 w-4" />} />
         </div>
       </div>
 
@@ -87,31 +89,31 @@ export default function AdminUsersPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-4 w-4 text-brand-600" />
-              {editing ? "Sửa người dùng" : "Thêm người dùng"}
+              {editing ? t("admin.users.form.edit") : t("admin.users.form.add")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Input
-              label="Tên"
+              label={t("admin.users.form.name")}
               value={editing?.name || ""}
               onChange={(e) => setEditing({ ...(editing || { id: "", provinceIds: [], role: "local_admin", email: "" }), name: e.target.value })}
             />
             <Input
-              label="Email"
+              label={t("admin.users.form.email")}
               value={editing?.email || ""}
               onChange={(e) => setEditing({ ...(editing || { id: "", provinceIds: [], role: "local_admin", email: "" }), email: e.target.value })}
             />
             <Select
-              label="Quyền"
+              label={t("admin.users.form.role")}
               value={editing?.role || "local_admin"}
               onChange={(v) => setEditing({ ...(editing || { id: "", provinceIds: [], email: "" }), role: v as UserRole })}
               options={[
-                { value: "local_admin", label: "Cán bộ địa phương" },
-                { value: "global_admin", label: "Quản trị toàn hệ thống" },
+                { value: "local_admin", label: t("admin.users.stats.local") },
+                { value: "global_admin", label: t("admin.users.stats.global") },
               ]}
             />
             <Input
-              label="Tỉnh quản lý (id, ngăn cách dấu phẩy)"
+              label={t("admin.users.form.provinces")}
               value={(editing?.provinceIds || []).join(",")}
               onChange={(e) =>
                 setEditing({
@@ -122,11 +124,12 @@ export default function AdminUsersPage() {
             />
             <div className="flex gap-2">
               <Button onClick={onSave} disabled={loading} className="w-full">
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Lưu
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t("admin.users.form.save")}
               </Button>
               {editing && (
                 <Button variant="ghost" onClick={() => setEditing(null)}>
-                  Hủy
+                  {t("admin.users.form.cancel")}
                 </Button>
               )}
             </div>
@@ -136,9 +139,9 @@ export default function AdminUsersPage() {
         <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5 lg:col-span-2">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle>Danh sách người dùng</CardTitle>
+              <CardTitle>{t("admin.users.listTitle")}</CardTitle>
               <Input
-                placeholder="Tìm theo tên, email, quyền, tỉnh..."
+                placeholder={t("admin.users.searchPlaceholder")}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full max-w-xs"
@@ -164,7 +167,7 @@ export default function AdminUsersPage() {
                     </div>
                     <div className="text-xs text-slate-600 break-all">{user.email}</div>
                     <div className="mt-1 flex flex-wrap gap-1 text-xs text-slate-500">
-                      <span className="font-semibold text-slate-600">Tỉnh:</span>
+                      <span className="font-semibold text-slate-600">{t("admin.users.provinceLabel")}</span>
                       <ProvincePills provinceIds={user.provinceIds} />
                     </div>
                   </div>
@@ -179,16 +182,16 @@ export default function AdminUsersPage() {
                 </div>
               </div>
             ))}
-            {users.length === 0 && <p className="text-sm text-slate-600">Chưa có người dùng.</p>}
+            {users.length === 0 && <p className="text-sm text-slate-600">{t("admin.users.empty")}</p>}
           </CardContent>
         </Card>
       </div>
 
       <ConfirmDialog
         open={Boolean(confirmDelete)}
-        title="Xóa tài khoản?"
-        description={`Bạn chắc chắn muốn xóa "${confirmDelete?.name}"? Đây là dữ liệu demo.`}
-        confirmLabel="Xóa"
+        title={t("admin.users.deleteTitle")}
+        description={t("admin.users.deleteDesc", { name: confirmDelete?.name || "" })}
+        confirmLabel={t("admin.provinces.deleteConfirm")}
         onConfirm={() => confirmDelete && onDelete(confirmDelete.id)}
         onClose={() => setConfirmDelete(null)}
       />
@@ -207,7 +210,8 @@ function StatPill({ label, value, icon }: { label: string; value: number; icon: 
 }
 
 function ProvincePills({ provinceIds }: { provinceIds: string[] }) {
-  const display = provinceIds.length ? provinceIds.slice(0, 3) : ["(tất cả)"];
+  const { t } = useI18n();
+  const display = provinceIds.length ? provinceIds.slice(0, 3) : [t("admin.users.provinceAll")];
   const extra = provinceIds.length > 3 ? provinceIds.length - 3 : 0;
   return (
     <>

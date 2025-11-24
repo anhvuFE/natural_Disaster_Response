@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import type { EmergencyContact } from "@/types";
 import { Loader2, PhoneCall, Pencil, Plus, Trash2 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/modal";
+import { useI18n } from "@/lib/i18n";
 
 const emptyContact: EmergencyContact = { id: "", name: "", phone: "", category: "", note: "" };
 
@@ -19,6 +20,7 @@ export default function AdminContactsPage() {
   const token = useAuthStore((s) => s.token);
   const { getContacts, setContacts } = useDisasterStore();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [contacts, setContactsState] = useState<EmergencyContact[]>([]);
   const [editing, setEditing] = useState<EmergencyContact>(emptyContact);
   const [loading, setLoading] = useState(false);
@@ -27,8 +29,8 @@ export default function AdminContactsPage() {
   useEffect(() => {
     getContacts(provinceId)
       .then(setContactsState)
-      .catch(() => toast({ title: "Không tải được danh bạ", variant: "destructive" }));
-  }, [getContacts, provinceId, toast]);
+      .catch(() => toast({ title: t("toast.contactsLoadError"), variant: "destructive" }));
+  }, [getContacts, provinceId, t, toast]);
 
   const resetForm = () => setEditing(emptyContact);
 
@@ -36,23 +38,23 @@ export default function AdminContactsPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!editing.name.trim() || !editing.phone.trim()) throw new Error("Tên và số điện thoại bắt buộc");
+      if (!editing.name.trim() || !editing.phone.trim()) throw new Error(t("admin.contacts.form.phone"));
       if (editing.id) {
         const updated = await Api.updateContact(provinceId, editing.id, editing, token);
         const next = contacts.map((c) => (c.id === updated.id ? updated : c));
         setContactsState(next);
         setContacts(provinceId, next);
-        toast({ title: "Đã cập nhật" });
+        toast({ title: t("toast.contactsUpdated") });
       } else {
         const created = await Api.createContact(provinceId, editing, token);
         const next = [...contacts, created];
         setContactsState(next);
         setContacts(provinceId, next);
-        toast({ title: "Đã thêm" });
+        toast({ title: t("toast.contactsCreated") });
       }
       resetForm();
     } catch (err) {
-      toast({ title: "Lỗi lưu", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -65,9 +67,9 @@ export default function AdminContactsPage() {
       const next = contacts.filter((c) => c.id !== id);
       setContactsState(next);
       setContacts(provinceId, next);
-      toast({ title: "Đã xóa" });
+      toast({ title: t("toast.deleted") });
     } catch (err) {
-      toast({ title: "Lỗi xóa", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -76,43 +78,43 @@ export default function AdminContactsPage() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-r from-slate-900 via-slate-800 to-amber-800 p-6 text-white shadow-lg shadow-slate-900/10">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-100">Số khẩn cấp</p>
-        <h1 className="text-2xl font-bold leading-tight">Danh bạ gọi nhanh cho người dân</h1>
-        <p className="text-sm text-amber-50">Nhập rõ nhóm (cứu hộ, y tế, điện lực...) để hiển thị đẹp ở trang công khai.</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-100">{t("admin.contacts.badge")}</p>
+        <h1 className="text-2xl font-bold leading-tight">{t("admin.contacts.title")}</h1>
+        <p className="text-sm text-amber-50">{t("admin.contacts.subtitle")}</p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
           <CardHeader>
-            <CardTitle>{editing.id ? "Sửa liên hệ" : "Thêm liên hệ"}</CardTitle>
+            <CardTitle>{editing.id ? t("admin.contacts.form.edit") : t("admin.contacts.form.add")}</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="space-y-3" onSubmit={onSubmit}>
-              <Input label="Tên đơn vị / cá nhân" placeholder="Trung tâm cứu hộ" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+              <Input label={t("admin.contacts.form.name")} placeholder={t("admin.contacts.form.namePlaceholder")} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
               <Input
-                label="Số điện thoại"
-                placeholder="Nhấn để gọi nhanh"
+                label={t("admin.contacts.form.phone")}
+                placeholder={t("admin.contacts.form.phonePlaceholder")}
                 value={editing.phone}
                 onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
               />
               <Input
-                label="Nhóm"
-                placeholder="Cứu hộ, Công an, Y tế..."
+                label={t("admin.contacts.form.category")}
+                placeholder={t("admin.contacts.form.categoryPlaceholder")}
                 value={editing.category || ""}
                 onChange={(e) => setEditing({ ...editing, category: e.target.value })}
               />
               <Textarea
-                placeholder="Ghi chú thêm (giờ làm việc, khu vực...)"
+                placeholder={t("admin.contacts.form.note")}
                 value={editing.note || ""}
                 onChange={(e) => setEditing({ ...editing, note: e.target.value })}
               />
               <div className="flex gap-2">
                 <Button type="submit" disabled={loading} className="w-full">
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {editing.id ? "Lưu thay đổi" : "Thêm liên hệ"}
+                  {editing.id ? t("admin.contacts.form.saveEdit") : t("admin.contacts.form.saveNew")}
                 </Button>
                 {editing.id && (
                   <Button type="button" variant="ghost" onClick={resetForm}>
-                    Hủy
+                    {t("admin.contacts.form.cancel")}
                   </Button>
                 )}
               </div>
@@ -122,7 +124,7 @@ export default function AdminContactsPage() {
 
         <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
           <CardHeader>
-            <CardTitle>Danh sách liên hệ</CardTitle>
+            <CardTitle>{t("admin.contacts.listTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {contacts.map((contact) => (
@@ -146,16 +148,16 @@ export default function AdminContactsPage() {
                 </div>
               </div>
             ))}
-            {contacts.length === 0 && <p className="text-sm text-slate-600">Chưa có liên hệ.</p>}
+            {contacts.length === 0 && <p className="text-sm text-slate-600">{t("admin.contacts.empty")}</p>}
           </CardContent>
         </Card>
       </div>
 
       <ConfirmDialog
         open={Boolean(confirmDelete)}
-        title="Xóa liên hệ?"
-        description={`Bạn chắc chắn muốn xóa "${confirmDelete?.name}"? Hành động này không thể hoàn tác.`}
-        confirmLabel="Xóa"
+        title={t("admin.contacts.deleteTitle")}
+        description={t("admin.contacts.deleteDesc", { name: confirmDelete?.name || "" })}
+        confirmLabel={t("admin.contacts.deleteConfirm")}
         onConfirm={() => confirmDelete && onDelete(confirmDelete.id)}
         onClose={() => setConfirmDelete(null)}
       />

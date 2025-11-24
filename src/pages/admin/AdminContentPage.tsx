@@ -10,20 +10,22 @@ import type { ChecklistItem, DisasterGuide, TipsSection } from "@/types";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminContentPage() {
   const { provinceId = "", disasterCode = "" } = useParams<{ provinceId: string; disasterCode: string }>();
   const { toast } = useToast();
   const token = useAuthStore((s) => s.token);
   const { getGuide } = useDisasterStore();
+  const { t } = useI18n();
   const [guide, setGuide] = useState<DisasterGuide | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     getGuide(provinceId, disasterCode)
       .then(setGuide)
-      .catch(() => toast({ title: "Không tải được nội dung", variant: "destructive" }));
-  }, [disasterCode, getGuide, provinceId, toast]);
+      .catch(() => toast({ title: t("toast.contentLoadError"), variant: "destructive" }));
+  }, [disasterCode, getGuide, provinceId, t, toast]);
 
   const updateChecklist = (updater: (items: ChecklistItem[]) => ChecklistItem[]) => {
     setGuide((prev) => (prev ? { ...prev, before: updater(prev.before) } : prev));
@@ -41,9 +43,9 @@ export default function AdminContentPage() {
     setSaving(true);
     try {
       await Api.updateDisasterGuide(provinceId, disasterCode, guide, token);
-      toast({ title: "Đã lưu nội dung" });
+      toast({ title: t("toast.contentSaved") });
     } catch (err) {
-      toast({ title: "Lỗi lưu nội dung", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -52,7 +54,7 @@ export default function AdminContentPage() {
   if (!guide) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm text-slate-600">Đang tải nội dung...</p>
+        <p className="text-sm text-slate-600">{t("admin.content.loading")}</p>
       </div>
     );
   }
@@ -60,24 +62,23 @@ export default function AdminContentPage() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-r from-slate-900 via-slate-800 to-sky-900 p-6 text-white shadow-lg shadow-slate-900/10">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-200">Nội dung hướng dẫn</p>
-        <h1 className="text-2xl font-bold leading-tight">Soạn checklist & lời khuyên cho người dân</h1>
-        <p className="text-sm text-sky-100">
-          Tỉnh: {guide.provinceId} • Thiên tai: {guide.disasterCode}
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-200">{t("admin.content.badge")}</p>
+        <h1 className="text-2xl font-bold leading-tight">{t("admin.content.title")}</h1>
+        <p className="text-sm text-sky-100">{t("admin.content.meta", { province: guide.provinceId, disaster: guide.disasterCode })}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button onClick={handleSave} disabled={saving} className="bg-white text-slate-900 hover:bg-slate-100">
-            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Lưu thay đổi
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t("admin.content.save")}
           </Button>
           <Link to={`/province/${guide.provinceId}`} className="text-sm text-sky-100 underline underline-offset-4">
-            Xem trước như người dân
+            {t("admin.content.preview")}
           </Link>
         </div>
       </div>
 
       <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
         <CardHeader>
-          <CardTitle>Checklist trước khi xảy ra</CardTitle>
+          <CardTitle>{t("admin.content.checklist.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {guide.before.map((item, index) => (
@@ -121,18 +122,18 @@ export default function AdminContentPage() {
               ])
             }
           >
-            <Plus className="mr-2 h-4 w-4" /> Thêm mục checklist
+            <Plus className="mr-2 h-4 w-4" /> {t("admin.content.checklist.add")}
           </Button>
         </CardContent>
       </Card>
 
       <TipsEditor
-        title="Trong lúc xảy ra"
+        title={t("admin.content.tips.during")}
         sections={guide.during}
         onChange={(sections) => updateTips("during", () => sections)}
       />
       <TipsEditor
-        title="Sau thiên tai"
+        title={t("admin.content.tips.after")}
         sections={guide.after}
         onChange={(sections) => updateTips("after", () => sections)}
       />
@@ -153,6 +154,7 @@ function TipsEditor({
     onChange(sections.map((s, i) => (i === idx ? updater(s) : s)));
   };
 
+  const { t } = useI18n();
   return (
     <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
       <CardHeader>
@@ -165,7 +167,7 @@ function TipsEditor({
               <Input
                 value={section.title}
                 onChange={(e) => updateSection(index, (s) => ({ ...s, title: e.target.value }))}
-                placeholder="Tiêu đề"
+                placeholder={t("admin.content.tipTitlePlaceholder")}
               />
               <Button
                 type="button"
@@ -178,7 +180,7 @@ function TipsEditor({
             <Textarea
               value={section.bullets.join("\n")}
               onChange={(e) => updateSection(index, (s) => ({ ...s, bullets: e.target.value.split("\n").filter(Boolean) }))}
-              placeholder="Mỗi dòng là một gợi ý"
+              placeholder={t("admin.content.tipBulletsPlaceholder")}
             />
           </div>
         ))}
@@ -196,7 +198,7 @@ function TipsEditor({
             ])
           }
         >
-          <Plus className="mr-2 h-4 w-4" /> Thêm section
+          <Plus className="mr-2 h-4 w-4" /> {t("admin.content.addSection")}
         </Button>
       </CardContent>
     </Card>

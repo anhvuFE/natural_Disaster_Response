@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMemo, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   provinces: Province[];
@@ -14,6 +15,7 @@ interface Props {
 
 export default function ProvinceSelectorCard({ provinces, selectedSlug, onSelect, onSubmit, loading }: Props) {
   const [query, setQuery] = useState("");
+  const { t } = useI18n();
 
   const filtered = useMemo(() => {
     if (!query) return provinces;
@@ -29,18 +31,18 @@ export default function ProvinceSelectorCard({ provinces, selectedSlug, onSelect
       <div className="space-y-3 lg:col-span-1">
         <div className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-white">
           <MapPin className="h-4 w-4" />
-          Lựa chọn địa phương
+          {t("selector.tag")}
         </div>
-        <h2 className="text-2xl font-bold text-slate-900">Chọn tỉnh/thành</h2>
-        <p className="text-sm text-slate-600">Lưu trên thiết bị để gợi ý nhanh cho lần sau.</p>
+        <h2 className="text-2xl font-bold text-slate-900">{t("selector.title")}</h2>
+        <p className="text-sm text-slate-600">{t("selector.subtitle")}</p>
         <div className="rounded-2xl border border-slate-200 bg-gradient-to-r from-blue-50/80 to-slate-50 px-4 py-3 text-sm text-slate-700">
-          <p className="font-semibold text-slate-900">Mẹo:</p>
-          <p>Gõ vài ký tự để lọc nhanh, sau đó bấm “Xem hướng dẫn”.</p>
+          <p className="font-semibold text-slate-900">{t("selector.tipLabel")}</p>
+          <p>{t("selector.tipText")}</p>
         </div>
       </div>
       <div className="space-y-4 lg:col-span-2">
         <Input
-          placeholder="Tìm nhanh theo tên hoặc vùng..."
+          placeholder={t("selector.placeholder")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -67,11 +69,11 @@ export default function ProvinceSelectorCard({ provinces, selectedSlug, onSelect
               </button>
             );
           })}
-          {filtered.length === 0 && <p className="text-sm text-slate-500">Không tìm thấy kết quả.</p>}
+          {filtered.length === 0 && <p className="text-sm text-slate-500">{t("selector.empty")}</p>}
         </div>
         <Button onClick={onSubmit} className="mt-2" disabled={loading} size="lg">
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Xem hướng dẫn
+          {t("selector.submit")}
         </Button>
       </div>
     </section>

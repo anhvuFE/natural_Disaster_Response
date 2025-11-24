@@ -2,19 +2,21 @@ import { Link, NavLink } from "react-router-dom";
 import { ShieldCheck, BellRing, MapPin, ListChecks, Phone, Globe2, Users } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useProvinceStore } from "@/store/provinceStore";
+import { useI18n } from "@/lib/i18n";
 
 export const adminLinks = [
-  { to: "/admin", label: "Dashboard", icon: <ShieldCheck className="h-4 w-4" /> },
-  { to: "/admin/alerts", label: "Cảnh báo", icon: <BellRing className="h-4 w-4" /> },
-  { to: "/admin/content/:provinceId/:disasterCode", label: "Nội dung", icon: <ListChecks className="h-4 w-4" /> },
-  { to: "/admin/shelters/:provinceId", label: "Nơi trú ẩn", icon: <MapPin className="h-4 w-4" /> },
-  { to: "/admin/contacts/:provinceId", label: "Số khẩn cấp", icon: <Phone className="h-4 w-4" /> },
-  { to: "/admin/provinces", label: "Danh sách tỉnh", icon: <Globe2 className="h-4 w-4" /> },
-  { to: "/admin/disasters", label: "Loại thiên tai", icon: <ShieldCheck className="h-4 w-4" /> },
-  { to: "/admin/users", label: "Người dùng", icon: <Users className="h-4 w-4" /> },
-];
+  { to: "/admin", labelKey: "admin.nav.dashboard", icon: <ShieldCheck className="h-4 w-4" /> },
+  { to: "/admin/alerts", labelKey: "admin.nav.alerts", icon: <BellRing className="h-4 w-4" /> },
+  { to: "/admin/content/:provinceId/:disasterCode", labelKey: "admin.nav.content", icon: <ListChecks className="h-4 w-4" /> },
+  { to: "/admin/shelters/:provinceId", labelKey: "admin.nav.shelters", icon: <MapPin className="h-4 w-4" /> },
+  { to: "/admin/contacts/:provinceId", labelKey: "admin.nav.contacts", icon: <Phone className="h-4 w-4" /> },
+  { to: "/admin/provinces", labelKey: "admin.nav.provincesList", icon: <Globe2 className="h-4 w-4" /> },
+  { to: "/admin/disasters", labelKey: "admin.nav.disasters", icon: <ShieldCheck className="h-4 w-4" /> },
+  { to: "/admin/users", labelKey: "admin.nav.users", icon: <Users className="h-4 w-4" /> },
+] as const;
 
 export default function AdminSidebar() {
+  const { t } = useI18n();
   const user = useAuthStore((s) => s.user);
   const provinces = useProvinceStore((s) => s.provinces);
   const pid = user?.provinceIds?.[0] || provinces[0]?.id || "";
@@ -23,7 +25,7 @@ export default function AdminSidebar() {
   return (
     <aside className="hidden w-56 shrink-0 md:block">
       <div className="sticky top-3 flex max-h-[calc(100vh-24px)] flex-col gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white px-3 py-4 shadow-sm">
-        <div className="px-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">Điều hướng</div>
+        <div className="px-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{t("admin.nav.navigation")}</div>
         <nav className="flex flex-col gap-1 overflow-auto pr-1">
           {adminLinks.map((link) => {
             const to = link.to.replace(":provinceId", pid).replace(":disasterCode", disasterCode);
@@ -43,7 +45,7 @@ export default function AdminSidebar() {
                 }
               >
                 <span className="text-slate-500">{link.icon}</span>
-                {link.label}
+                {t(link.labelKey)}
               </NavLink>
             );
           })}

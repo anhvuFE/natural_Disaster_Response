@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/ui/use-toast";
 import type { DisasterType } from "@/types";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 const empty: DisasterType = { code: "", name: "", icon: "" };
 
@@ -15,12 +16,13 @@ export default function AdminDisastersPage() {
   const token = useAuthStore((s) => s.token);
   const { disasterTypes, fetchDisasterTypes } = useDisasterStore();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [editing, setEditing] = useState<DisasterType>(empty);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchDisasterTypes().catch(() => toast({ title: "Không tải được danh sách thiên tai", variant: "destructive" }));
-  }, [fetchDisasterTypes, toast]);
+    fetchDisasterTypes().catch(() => toast({ title: t("toast.disasterListLoadError"), variant: "destructive" }));
+  }, [fetchDisasterTypes, t, toast]);
 
   const resetForm = () => setEditing(empty);
 
@@ -28,18 +30,18 @@ export default function AdminDisastersPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!editing.code.trim() || !editing.name.trim()) throw new Error("Code và tên bắt buộc");
+      if (!editing.code.trim() || !editing.name.trim()) throw new Error(t("admin.disasters.form.code"));
       if (disasterTypes.find((d) => d.code === editing.code)) {
         await Api.updateDisasterType(editing.code, editing, token);
-        toast({ title: "Đã cập nhật loại thiên tai" });
+        toast({ title: t("toast.disasterUpdated") });
       } else {
         await Api.createDisasterType(editing, token);
-        toast({ title: "Đã tạo loại thiên tai" });
+        toast({ title: t("toast.disasterCreated") });
       }
       resetForm();
       fetchDisasterTypes();
     } catch (err) {
-      toast({ title: "Lỗi lưu", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -49,10 +51,10 @@ export default function AdminDisastersPage() {
     setLoading(true);
     try {
       await Api.deleteDisasterType(code, token);
-      toast({ title: "Đã xóa" });
+      toast({ title: t("toast.deleted") });
       fetchDisasterTypes();
     } catch (err) {
-      toast({ title: "Lỗi xóa", description: String(err), variant: "destructive" });
+      toast({ title: t("toast.loadDataError"), description: String(err), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -61,29 +63,30 @@ export default function AdminDisastersPage() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-white/60 bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-800 p-6 text-white shadow-lg shadow-slate-900/10">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cyan-100">Loại thiên tai</p>
-        <h1 className="text-2xl font-bold leading-tight">Chuẩn hóa danh mục thiên tai</h1>
-        <p className="text-sm text-cyan-50">Code và biểu tượng sẽ hiển thị ở tab thiên tai cho người dân.</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cyan-100">{t("admin.disasters.badge")}</p>
+        <h1 className="text-2xl font-bold leading-tight">{t("admin.disasters.title")}</h1>
+        <p className="text-sm text-cyan-50">{t("admin.disasters.subtitle")}</p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
           <CardHeader>
-            <CardTitle>{editing.code ? "Sửa loại thiên tai" : "Thêm loại thiên tai"}</CardTitle>
+            <CardTitle>{editing.code ? t("admin.disasters.form.edit") : t("admin.disasters.form.add")}</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="space-y-3" onSubmit={onSubmit}>
-              <Input label="Code" placeholder="flood" value={editing.code} onChange={(e) => setEditing({ ...editing, code: e.target.value })} />
-              <Input label="Tên hiển thị" placeholder="Lũ lụt" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
-              <Input label="Biểu tượng" placeholder="🌊 (tùy chọn)" value={editing.icon || ""} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} hint="Có thể dùng emoji hoặc ký hiệu ngắn" />
+              <Input label={t("admin.disasters.form.code")} placeholder={t("admin.disasters.form.codePlaceholder")} value={editing.code} onChange={(e) => setEditing({ ...editing, code: e.target.value })} />
+              <Input label={t("admin.disasters.form.name")} placeholder={t("admin.disasters.form.namePlaceholder")} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+              <Input label={t("admin.disasters.form.icon")} placeholder={t("admin.disasters.form.iconPlaceholder")} value={editing.icon || ""} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} hint={t("admin.disasters.form.iconHint")} />
               <Button type="submit" disabled={loading} className="w-full">
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Lưu danh mục
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t("admin.disasters.form.submit")}
               </Button>
             </form>
           </CardContent>
         </Card>
         <Card className="border-white/70 bg-white/95 shadow-lg shadow-slate-900/5">
           <CardHeader>
-            <CardTitle>Danh sách loại thiên tai</CardTitle>
+            <CardTitle>{t("admin.disasters.listTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {disasterTypes.map((d) => (
@@ -105,7 +108,7 @@ export default function AdminDisastersPage() {
                 </div>
               </div>
             ))}
-            {disasterTypes.length === 0 && <p className="text-sm text-slate-600">Chưa có loại thiên tai.</p>}
+            {disasterTypes.length === 0 && <p className="text-sm text-slate-600">{t("admin.disasters.empty")}</p>}
           </CardContent>
         </Card>
       </div>
